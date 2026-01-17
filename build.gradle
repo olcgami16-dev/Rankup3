@@ -50,10 +50,6 @@ dependencies {
         transitive = false
     }
 
-    compileOnly('com.gmail.nossr50.mcMMO:mcMMO:2.2.004') {
-        exclude group: 'com.sk89q.worldguard'
-    }
-
     compileOnly 'com.github.pyvesb:advanced-achievements:8.0.2'
 
     /* ❌ TOWNY KALDIRILDI (BUILD KIRAN SEBEP) */
