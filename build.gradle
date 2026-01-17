@@ -1,124 +1,91 @@
 plugins {
     id 'java'
-    id 'info.solidsoft.pitest' version '1.7.0'
     id 'com.gradleup.shadow' version '9.0.0-beta8'
     id 'io.freefair.lombok' version "8.12.1"
 }
 
-pitest {
-    junit5PluginVersion = '0.15'
-    excludedClasses = ["sh.okx.rankup.Metrics*"]
-    timestampedReports = false
-    threads = 2
-}
-
-group 'sh.okx'
-version '3.15.2'
+group = 'sh.okx'
+version = '3.15.2'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 repositories {
     mavenCentral()
-    maven {
-        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
-    }
-    maven {
-        url 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
-    }
-    maven {
-        url 'https://nexus.bencodez.com/repository/maven-public/'
-    }
-    maven {
-        url 'https://jitpack.io'
-    }
-    maven {
-        url 'https://nexus.neetgames.com/repository/maven-releases/'
-    }
-    maven {
-        url 'https://repo.papermc.io/repository/maven-public/'
-    }
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    maven { url 'https://nexus.bencodez.com/repository/maven-public/' }
+    maven { url 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    testImplementation 'org.junit.platform:junit-platform-launcher:1.8.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-    testImplementation 'com.github.MockBukkit:MockBukkit:04889261630cd6f5aaebd86a576bbcd12c442ea7'
+    /* === TEST === */
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
 
-    implementation group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.30'
-    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    /* === LOGGING (SHADED) === */
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-nop:1.7.36'
 
-    compileOnly 'org.jetbrains:annotations:22.0.0'
+    /* === SPIGOT / PAPER === */
     compileOnly 'org.spigotmc:spigot-api:1.21.4-R0.1-SNAPSHOT'
+
+    /* === OPTIONAL PLUGINS === */
+    compileOnly 'net.luckperms:api:5.4'
+    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
+        exclude group: 'org.bukkit'
+    }
+    compileOnly('me.clip:placeholderapi:2.11.5') {
+        exclude group: 'org.bstats'
+    }
+
     compileOnly('com.github.Realizedd:TokenManager:3.2.4') {
         transitive = false
     }
 
-    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
-        exclude group: 'org.bukkit'
-    }
-    compileOnly('me.clip:placeholderapi:2.10.9') {
-        exclude group: 'org.bstats'
-    }
-    compileOnly 'com.github.pyvesb:advanced-achievements:8.0.2'
-    compileOnly 'com.github.astei:Superbvote:700fca43659b438cb9bb36c218a7646d2f2ef315'
-    compileOnly('com.gmail.nossr50.mcMMO:mcMMO:2.2.004') {
-        exclude group: 'com.sk89q.worldguard'
-    }
     compileOnly('com.bencodez:votingplugin:6.14.1') {
         transitive = false
     }
 
-    compileOnly 'net.luckperms:api:5.4'
+    compileOnly('com.gmail.nossr50.mcMMO:mcMMO:2.2.004') {
+        exclude group: 'com.sk89q.worldguard'
+    }
 
-    compileOnly 'com.github.TownyAdvanced.Towny:towny:d71ad25'
-    testImplementation 'com.github.TownyAdvanced.Towny:towny:d71ad25'
+    compileOnly 'com.github.pyvesb:advanced-achievements:8.0.2'
 
+    /* ❌ TOWNY KALDIRILDI (BUILD KIRAN SEBEP) */
+    // compileOnly 'com.github.TownyAdvanced.Towny:towny:d71ad25'
+
+    /* === INTERNAL === */
     implementation('io.pebbletemplates:pebble:3.1.5') {
         exclude group: 'org.slf4j'
     }
     implementation 'com.electronwill.night-config:toml:3.6.4'
 }
 
-artifacts {
-    archives shadowJar
-}
-
 shadowJar {
     archiveClassifier.set('')
     minimize()
-    relocate 'org.slf4j', 'sh.okx.rankup.export.org.slf4j'
+    relocate 'org.slf4j', 'sh.okx.rankup.libs.slf4j'
 }
 
-// automatically copy the version to plugin.yml
 processResources {
-    // do this again whenever version changes
     inputs.property 'version', project.version
-    duplicatesStrategy = 'include'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-    // copy plugin.yml and replace version
     from(sourceSets.main.resources.srcDirs) {
         include 'plugin.yml'
-        expand 'version': project.version
+        expand version: project.version
     }
 
-    // copy everything else
     from(sourceSets.main.resources.srcDirs) {
         exclude 'plugin.yml'
     }
 }
 
-task spigot(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    from sourceSets.main.runtimeClasspath
-    destinationDirectory = file("./spigot/plugins/")
-    archiveFileName = "Rankup.jar"
-}
-
 test {
     useJUnitPlatform()
-    testLogging {
-        events "passed", "skipped", "failed"
-    }
 }
