@@ -4,7 +4,7 @@ main: sh.okx.rankup.RankupPlugin
 author: Okx
 depend: [Vault]
 softdepend: [PlaceholderAPI, mcMMO, AdvancedAchievements, Towny, SuperbVote, VotingPlugin, LuckPerms]
-api-version: 1.13
+api-version: 1.21.4
 
 commands:
   rankup:
